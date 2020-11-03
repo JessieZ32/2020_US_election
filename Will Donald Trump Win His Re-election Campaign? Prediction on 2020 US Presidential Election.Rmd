@@ -1,0 +1,285 @@
+---
+title: "Donald Trump May Win His Re-election Campaign?"
+subtitle: "Prediction on 2020 US Presidential Election"
+author: "Yijie Zhao, Yifan Xu, Yuyan Xu & Yuze Kang"
+date: "1 November 2020"
+abstract: |
+  | First sentence. Second sentence. Third sentence. Fourth sentence.
+  |
+  | **Keywords:** Forecasting; US 2020 Election; Trump; Biden; Multilevel Regression with Post-stratification.
+output:
+  pdf_document: default
+  html_document: default
+bibliography: reference.bib
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("car")
+library(tidyverse)
+library(ggplot2)
+library(car)
+```
+
+
+# Abstract and Keywords
+
+
+
+# Introduction
+
+
+
+# Data
+
+```{r, include=FALSE}
+# load the cleaned and selected survey data
+survey_data <- read_csv(file="survey_data.csv", col_names = TRUE,
+                        cols(vote_Trump = col_double(),
+                             age_group = col_character(),
+                             sex = col_character(),
+                             race = col_character(),
+                             education = col_character(),
+                             household_income = col_character(),
+                             state = col_character()
+                             ))
+
+# load the cleaned and selected ACS2018 data
+ACS2018_data <- read_csv(file="ACS2018_data.csv", col_names = TRUE,
+                         cols(age_group = col_character(),
+                              sex = col_character(),
+                              race = col_character(),
+                              education = col_character(),
+                              household_income = col_character(),
+                              state = col_character(),
+                              perwt = col_double()
+                              ))
+```
+
+
+## Survey Data
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from Democracy Fund + UCLA Nationscape
+
+# Age distribution for groups of sexes 
+survey_data %>% ggplot(aes(x=age_group, fill=sex)) +
+  geom_bar(position=position_dodge(0.7), width=0.7 ) +
+  labs(title="Figure 1. Age Distribution for Male and Female",
+       caption = "Source: Democracy Fund + UCLA Nationscape",
+       x="Age Group",
+       y="Number")
+```
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from Democracy Fund + UCLA Nationscape
+
+# Race distribution for groups of sexes 
+survey_data %>% ggplot(aes(x=race, fill=sex)) +
+  geom_bar(position=position_dodge(0.8), width=0.8) +
+  labs(title="Figure 2. Race Distribution for Male and Female",
+       caption = "Source: Democracy Fund + UCLA Nationscape",
+       x="Race",
+       y="Number")
+```
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from Democracy Fund + UCLA Nationscape
+
+# Education distribution
+survey_data %>% ggplot(aes(x=education)) +
+  geom_bar(position="dodge", fill="sky blue", width=0.5) + 
+  labs(x = "Highest Education Level",
+       y = "Number",
+       title = "Figure 3. Distribution of Education Level",
+       caption = "Source: Democracy Fund + UCLA Nationscape.") + 
+  coord_flip()
+```
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from Democracy Fund + UCLA Nationscape
+
+# Households Total Income Distribution
+survey_data %>% ggplot(aes(x=household_income))+
+  geom_bar(position="dodge", width=0.5, fill="sky blue")+
+  labs(x = "Households Annual Income Level",
+       y = "Number",
+       title = "Figure 4. Distribution of Households Total Income",
+       caption = "Source: Democracy Fund + UCLA Nationscape.") +
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+```
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from Democracy Fund + UCLA Nationscape
+
+# State Population Distribution
+survey_data %>% group_by(state) %>% 
+  ggplot(aes(x=state))+
+  geom_bar(position="dodge", width=0.6, fill="sky blue")+
+  labs(x = "States of USA",
+       y = "Population",
+       title = "Figure 5. Population Distribution Among USA States",
+       caption = "Source: Democracy Fund + UCLA Nationscape.") +
+  theme(axis.text.x=element_text(angle=90,hjust=1))
+```
+
+
+```{r, echo=FALSE}
+# Plots for response variables of survey data
+pie_voteTrump <- ggplot(survey_data) +
+  geom_bar(aes(x=factor(1), fill=factor(vote_Trump))) +
+  coord_polar(theta="y") +   
+  labs(
+    x = "Votes",
+    title = "Figure 6. Blue - Vote Trump v.s. Vote Biden - Red", 
+    caption = "Source: Democracy Fund + UCLA Nationscape.") 
+pie_voteTrump
+```
+
+
+
+## Post-stratification Data
+
+```{r, echo=FALSE}
+# Plots for explanatory variables of survey_data 
+# Data from IPUMS USA
+
+# Age distribution for groups of sexes 
+ACS2018_data %>% ggplot(aes(x=age_group, fill=sex)) +
+  geom_bar(position=position_dodge(0.7), width=0.7 ) +
+  labs(title="Figure 7. Age Distribution for Male and Female",
+       caption = "Source: IPUMS USA",
+       x="Age Group",
+       y="Number")
+```
+
+
+```{r,echo=FALSE}
+# Plots for explanatory variables of census data 
+# Data from IPUMS USA
+
+# Race distribution 
+table_race <- ACS2018_data %>% group_by(race) %>% summarise(count=n())
+barplot(height=table_race$count, 
+        names=table_race$race,
+        main = "Figure 8. Race Distribution. Source from IPUMS USA",
+        xlab = "Race",
+        ylab = "Number",
+        col=rgb(0.4,0.4,0.6,0.6)
+        )
+```
+
+
+```{r,echo=FALSE}
+# Plots for explanatory variables of census data 
+# Data from IPUMS USA
+
+# Education distribution 
+table_edu <- ACS2018_data %>% group_by(education) %>% summarise(count=n())
+barplot(height=table_edu$count, 
+        names=table_edu$education,
+        main = "Figure 9. Education Distribution. Source from IPUMS USA",
+        xlab = "Education Level",
+        ylab = "Number",
+        col=rgb(0.4,0.4,0.6,0.6)
+        )
+```
+
+
+```{r,echo=FALSE}
+# Plots for explanatory variables of census data 
+# Data from IPUMS USA
+
+# Households Income Distribution 
+ACS2018_data %>% ggplot(aes(x=household_income))+
+  geom_bar(position="dodge", width=0.5, fill="light blue")+
+  labs(x = "Households Annual Income Level",
+       y = "Number",
+       title = "Figure 10. Distribution of Households Total Income",
+       caption = "Source: IPUMS USA.") +
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+```
+
+```{r,echo=FALSE}
+# Plots for explanatory variables of census data 
+# Data from IPUMS USA
+
+# State Population Distribution 
+ACS2018_data %>% ggplot(aes(x=state))+
+  geom_bar(position="dodge", width=0.6, fill="light blue")+
+  labs(x = "State Population",
+       y = "Number",
+       title = "Figure 11. Population Distribution of USA States",
+       caption = "Source: IPUMS USA.") +
+  theme(axis.text.x=element_text(angle=90,hjust=1))
+```
+
+
+
+# Model
+
+```{r}
+#Create cells
+survey_data$cell<-paste(survey_data$age_group,survey_data$sex,survey_data$race)
+ACS2018_data$cell<-paste(ACS2018_data$age_group,ACS2018_data$sex,ACS2018_data$race)
+
+#Create census_data
+state_population<-ACS2018_data %>% group_by(state) %>% summarise(sum_state=n())
+
+census_data<-ACS2018_data %>% group_by(state, age_group,sex,race) %>% summarise(count=n())
+
+
+num_state<-nrow(state_population)
+
+num_cell_state<-nrow(census_data)
+
+for (i in 1:num_state) {
+  for(j in 1:num_cell_state){
+    if(state_population$state[i] == census_data$state[j]){
+      census_data$cell_prob_per_state[j] <- as.numeric(census_data$count[j])/as.numeric(state_population$sum_state[i])
+    }
+  }
+}
+
+###Calculate a raw probability that a person will support Trump(only based on survey data)
+survey_data %>% summarise(Support_T_raw_prob = sum(vote_Trump)/nrow(survey_data))
+
+#Build a linear regression model using survey data
+model_survey <- lm(vote_Trump ~ age_group+sex+race, data = survey_data)
+census_data$estimate<-model_survey %>% predict(newdata = census_data)
+head(census_data)
+census_data %>% mutate(predict_prob_perS = estimate*cell_prob_per_state) %>% group_by(state) %>% summarise(predict_prob = sum(predict_prob_perS))
+
+#VIF value
+car::vif(model_survey)
+# Model diagnostics
+par(mfrow=c(2,2))
+plot(model_survey)
+# Model statistics
+summary(model_survey)
+
+```
+
+
+
+
+
+
+# Results
+
+
+# Discussion
+
+
+# Reference
+
+
+
