@@ -4,12 +4,12 @@ subtitle: "Prediction on 2020 US Presidential Election"
 author: "Yijie Zhao, Yifan Xu, Yuyan Xu & Yuze Kang"
 date: "1 November 2020"
 abstract: |
-  | First sentence. Second sentence. Third sentence. Fourth sentence.
+  | In this paper, we use survey data from Democracy Fund + UCLA Nationscape to build regression model. We apply this model to census sample data from IPUMS USA by using multilevel regression with post-stratification. We predict that Donald Trump wins 45.4% of the national popular vote and lose his re-election campaign..
   |
   | **Keywords:** Forecasting; US 2020 Election; Trump; Biden; Multilevel Regression with Post-stratification.
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 bibliography: reference.bib
 ---
 
@@ -25,15 +25,47 @@ library(car)
 ```
 
 
-# Abstract and Keywords
-
-
 
 # Introduction
+The presidential election campaign is held every four years. Before the official campaign day, American political analysts and scholars typically spent hours dedicating in forecasting the winner of election. This is a national matter such that every U.S. citizen deeply cares about. The last election in 2016, Donald Trump lost the popular vote against Hillary Clinton but still won the election and became the new U.S. president. His vote share was mostly located in the rural and suburban areas, where he won 70% of the popular vote; Clinton on the other hand, had a vote share located in densely populated areas (Hennig, 2017). Although Clinton won the popular vote, the winning majority in the Electoral College leaned towards the republican candidate, as a result, Trump won by securing the votes in some of the important swing states (Hennig, 2017). This year, the U.S. election seems more intriguing and uncertain under the shadows of COVID-19. The two candidates that have dominant polling are Donald Trump and the Democratic presidential nominee Joe Biden. Polling research have observed that the American voters changed their concerns and behaviour due to the effects of COVID-19, their major concern were the economy (Zhang & Fedor, 2020). The October polling showed that about 53 percent of Democrats believed they were worse off financially since Trump became president and 9 percent of Republicans do (Zhang & Fedor, 2020). This shows that voters are starting to reconsider their choices of candidate because the pandemic has brought doubts and criticisms on Trump’s policy on dealing with the spreading of the disease. However, the lap in national polls does not mean that Trump will lose the election on November 3.
+This report is in an effort to predict the outcome of election by constructing statistical models to analyze the current voting trend. We eliminated the other candidates and only consider the two candidates with dominant polling, Donald Trump and Joe Biden. Our objective is to discover the voter’s behaviour and how they think of Donald Trump, and then predict the chance of Donald Trump win the 2020 election by using these analytic findings.
 
+In this report, we used the first release of the Phase 2 data in August 2020 from UCLA Nationalscape as our survey data. The dataset we chose was the wave 50 of the Nationalscape data (20200625). In addition to this, we also used the 2018 census data from American Community Surveys (ACS) as our post-stratification data. Post-stratification is an statistical method that allows adjusting the samples in order to match the general population. When conducting the survey, pollsters often need to deal with nonresponse from the potential respondents. These nonresponses could contribute to a bias on the research findings such that they cannot reflect on the real large population. Post-stratification is a way to deal with the nonresponse situation. In this survey, we first cleaned the data by identifying any errors in the data and removed them. In the data section, we used bar plots and histograms to analyze the demographic information about the voters who voted Donald Trump in each dataset.  
+
+We then construct a linear regression model on the survey data to observe the response (people voting Trump) and predictor variables (voter’s age, sex, and race), then apply the predictive model on the census data to make prediction on the probability of each state voting Trump. The reason we focused on the polling probability in states is, a candidate must win at least 270 votes in electoral college in order to be elected as the U.S. president. Each U.S. state gets a certain number of votes in electoral college based on its population. By looking up on these statistics allow us to make better predictions on the chances that Trump wins this election. During this process, we found that Maine (51.8%), Montana (52.5%), New Mexico (51.5%) and Vermont (52.9%) have the highest probability of voting Trump in electoral college. It is worth mentioning that the swing states such as Arizona has a 47.9%, Minnesota has a 41%, Florida has a 46.7%. In addition, the prediction on overall national polls is that about 49% of the voters would vote for Trump, 51% of the voters would vote for Biden. We then ran several model diagnostics tests to verify the predictive ability of our model, the residuals and fitted graph showed that our model was moderately reliable. At last, we discussed the key findings in this report in the discussion section and applied these findings into the real-world U.S. election voting trend. We interpreted our prediction and also discussed a few shortcomings that could affect these prediction results.
 
 
 # Data
+
+In this report, we used the first release of the Phase 2 data in August 2020 from UCLA Nationalscape. The dataset we chose was the wave 50 of the Nationalscape data (20200625)  (@citeDFsurvey), which treated as an individual level survey data to predict the outcome of the election on 2020. Meanwhile, we used the data set of American Community Surveys (ACS) in 2018 as the post-stratification data, aiming at making the best estimate of the election result. (@citeACS) We also used @citelabelled and @citehaven in data cleaning.
+
+## Survey data 
+
+The survey data was released by Nationscape. The Democracy Fund + UCLA Nationscape is one of the largest public opinion survey projects. It interviewed people in almost every county, congressional district, and mid-sized American cities in the lead up to the upcoming election.
+
+The Nationscape's survey on the 2020 US election intends to interview 500,000 Americans from July 2019 to December 2020, and about 6,250 people have been interviewed every week. We focus on the survey data set during the week from June 18 to 24 (wave 50). (@citeDFsurvey)
+
+More specifically, the market research platform, Lucid, provided Nationscape with their respondents and these audience samples were treated as the sample frame. After matching the U.S. populations in terms of age, gender, race, region, income, and education, Lucid sent these respondents directly to the survey software operated of Nationscape. Finally, all interviewees conducted this survey online in English after completing the attention check. 
+
+The sampling method used in the survey is convenience sampling. It is a type of non-probability sampling and it is selected a convenience sample based on a set of demographic conditions due to under representation. It is worth noting that the technology required by the census (such as tablet computers) is also changing rapidly. Although this survey uses the latest census data, these data are usually used for one year or more, which reduces the accuracy of the census.
+
+## Data Selection and Visualization
+
+The content of the survey mainly includes the demographics of the interviewees, as well as their views on leaders, policies, and facts, etc. Our purpose is to find the factors that could effectively explain the winner of the 2020 U.S. presidential election among hundreds of variables, and to predict the outcome of the election. In addition, we also wonder the difference between Trump and Joe Biden’s supporters. In this regard, vote_2020 will be the response variable, and we select several possible predictor variables from this data set:
+
+- sex 
+- race_ethnicity 
+- Education
+- household_income                              
+- vote_intention
+- vote_Trump
+- age_group                
+- race
+- stateicp
+
+We found that there are missing data in this survey, "888" indicates the respondent was not asked in this wave, "999" indicates that the respondent was uncertain or does not know, and "." means that the respondent skipped the question. Since these replies did not contribute any useful information to our study, we deleted them using na.omit() function in R.
+
+We draw graphs of selected variables to generally observe their distribution.(@citeggplot2)
 
 ```{r, include=FALSE}
 # load the cleaned and selected survey data
@@ -60,7 +92,8 @@ ACS2018_data <- read_csv(file="ACS2018_data.csv", col_names = TRUE,
 ```
 
 
-## Survey Data
+
+
 
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
@@ -75,6 +108,11 @@ survey_data %>% ggplot(aes(x=age_group, fill=sex)) +
        y="Number")
 ```
 
+
+Figure 1 indicated that middle-aged people between 40 and 49 years old account for the largest proportion, followed by the youth between 30 and 39 years old. Moreover, compared with the lower age group, there are more male than female in the higher age group. 
+
+
+
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
 # Data from Democracy Fund + UCLA Nationscape
@@ -87,6 +125,12 @@ survey_data %>% ggplot(aes(x=race, fill=sex)) +
        x="Race",
        y="Number")
 ```
+
+It can be seen from Figure 2 that the vast majority of respondents are white.
+
+
+
+
 
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
@@ -102,6 +146,13 @@ survey_data %>% ggplot(aes(x=education)) +
   coord_flip()
 ```
 
+ Figure 3 shows that the respondents with a bachelor degree are the most, followed by those with a college degree. The largest difference in the number of male and female is in graduate degree, where the number of males is almost twice that of females. 
+
+
+
+
+
+
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
 # Data from Democracy Fund + UCLA Nationscape
@@ -115,6 +166,10 @@ survey_data %>% ggplot(aes(x=household_income))+
        caption = "Source: Democracy Fund + UCLA Nationscape.") +
   theme(axis.text.x=element_text(angle=45,hjust=1))
 ```
+
+Figure 4 suggest that the annual income of households has the largest number of respondents in $19,999 and below, and the annual income of a few households exceeds $20,000.
+
+
 
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
@@ -132,6 +187,8 @@ survey_data %>% group_by(state) %>%
 ```
 
 
+Figure 6 indicates that there are more people who vote for Biden than Trump.
+
 ```{r, echo=FALSE}
 # Plots for response variables of survey data
 pie_voteTrump <- ggplot(survey_data) +
@@ -148,6 +205,21 @@ pie_voteTrump
 
 ## Post-stratification Data
 
+The data set of American Community Surveys (ACS) collected by IPUMS was treated as the post-stratification data in this analysis and we used the ACS data set in the year of 2018 in this study. (@citeACS)
+
+The target population of 2018 ACS is the total population living in the United States and the sample frame for the 2018 ACS is a national Master Address File (MAF). MAF was originally created before the 2000 Census and was the first permanently maintained address list of housing units by the Census Bureau. Moreover, the ACS sample design is similar to the Census 2000 long-format sample design, including over-sampling of small government departments, which samples their addresses to improve the reliability of the estimates of small government departments. Since February 2002, the sampling rate in all counties has been reduced to 2.5%, except for Houston, where the sampling rate remains at 1%. Sampling at each site is divided into two stages. 17.5% of the samples are drawn in the first stage, and then a second sampling is performed to reach the final required percentage. Then, one month later, the unanswered households will be contacted by email and telephone. Finally, 1-in-3 non respondents after mail and telephone attempts were selected for personal interviews. Moreover, ACS data are weighted to reflect the sample design by adjusting the impact of non-response, aiming at producing reliable and usable estimated result of the population. 
+
+## Data Selection and Visualization
+
+We use the same variables selected in the survey data, which are：
+age, sex, race, educd, hhincome, citizen,age_group, education, household_income and state. 
+
+For data processing, we first deleted the observations who are not eligible to vote, for example, the respondent is under 18 or the respondent is not a citizen. Besides, since the survey data and the post-stratification data are two different data sets, we need the corresponding options for each predictor variable in the two data set. Moreover, we created a categorical variable age_group to represent respondents’ ages in two data set, thereby the age distribution of respondents is much more intuitively. In addition, in order to facilitate the analysis on the variable race, we deleted observations with more than one major race and combined it into 4 categories: AAPI, Black,White and Others.
+
+We draw graphs of variables to generally observe their distribution, which shown as follows.
+
+
+
 ```{r, echo=FALSE}
 # Plots for explanatory variables of survey_data 
 # Data from IPUMS USA
@@ -160,6 +232,9 @@ ACS2018_data %>% ggplot(aes(x=age_group, fill=sex)) +
        x="Age Group",
        y="Number")
 ```
+
+The age distribution of the respondents in Figure 7 is left-skewed, mostly in the middle-aged and middle-aged, and the number of females is larger than that of males in general. 
+
 
 
 ```{r,echo=FALSE}
@@ -177,6 +252,9 @@ barplot(height=table_race$count,
         )
 ```
 
+Figure 8 shows that most of the respondents are white, and they account for nearly a half of the proportion, followed by AAPI people. 
+
+
 
 ```{r,echo=FALSE}
 # Plots for explanatory variables of census data 
@@ -193,6 +271,8 @@ barplot(height=table_edu$count,
         )
 ```
 
+
+Observed from Figure 9, the most respondents received a bachelor's degree, followed by a high school diploma. 
 
 ```{r,echo=FALSE}
 # Plots for explanatory variables of census data 
@@ -224,18 +304,47 @@ ACS2018_data %>% ggplot(aes(x=state))+
 
 
 
+In this analysis, we used @citeR as a tool.
+
+
 # Model
 
-```{r}
-#Create cells
-survey_data$cell<-paste(survey_data$age_group,survey_data$sex,survey_data$race)
-ACS2018_data$cell<-paste(ACS2018_data$age_group,ACS2018_data$sex,ACS2018_data$race)
+In the above section we have viewed several variables, although all of them might exert observable influence on a person's intention to vote for Donald Trump, but with the consideration of the capacity of a single computer( which will be discussed later), we maintained three variables: age group, sexuality and race as predictors, in order to build a fitted predicting model, which are the basic features that would pop into our mind while thinking about a human. Instead of using age in numeric form, we classified observations in the data into age group, which enables us to divide people into groups when it comes to a higher level.
 
-#Create census_data
+By building this model, we applied the method of multilevel regression with post-stratification, which helps to deal with data that observations are grouped. For the individual level we actually build a linear regression model using R (@citeR) based on the survey data in 2020(@citeDFsurvey), For a multilevel linear regression model, the individual level equation should be like:
+
+$y_{ij} = \beta_{0j} + \beta_{1j}x_{ij} + \epsilon_{ij}$
+
+where y represents the response variable,$\beta_0$ is the intercept, $x_i$ is the predictors that affects $y$, $\beta_1$ is the slope, the extent of influence that changes in $x$ might result in $y$. 
+
+When it comes to an election across the country, factors such as the state that the voter lives in would put on a level effect which makes the parameters unstable, and if also the observations are grouped, the coefficients in equation would be like this:
+
+$\beta_{0j} = \alpha + a_j, a_j \sim N(0, {\sigma_a}^2)$
+$\beta_{1j} = \beta + b_j, b_j \sim N(0, {\sigma_b}^2)$
+
+This means the parameters varies and follows different normal distribution.
+
+In our case the intention to vote Trump is the response variable, there are three predictors: age, sex and race, people grouped by these predictors, the extent of their influence we could say, vary on different level.
+
+First we look at the linear regression model built based on survey data 2020, using lm() function(@citetidyverse), at the individual level, there is no specific large VIF(variance inflation factor) values, which indicates that there is no obvious correlation between any two predictors. (used vif()function @citeCar)
+
+```{r echo=FALSE, paged.print=TRUE}
+#Build a linear regression model using survey data
+model_survey <- lm(vote_Trump ~ age_group+sex+race, data = survey_data)
+#VIF value
+car::vif(model_survey)
+```
+
+Then by looking at the model summary, the evidently small p-values of nearly each variable of each group indicates that the estimates of the parameters are significant and relations between the predictors and the response variable cannot be ignored.
+
+The individual-level linear regression model is fairly fitted, then we directly apply this trained model to the census dataset (ACS 2018)(@citeCodeMRP), when it moves to a higher level, considering state the voter lives in and voters are grouped. For the data that is nearly a census, the ACS 2018 data, we first calculate the number of voters in each possible group combined by state, age group, sex and race, then using the model we  could obtain predicted probability for each group, since different group takes different percentage in each state, by calculating the weight of each group and its product with the predicted probability, we can get a state's predicted probability by adding all of the products. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#setup census_data
 state_population<-ACS2018_data %>% group_by(state) %>% summarise(sum_state=n())
 
 census_data<-ACS2018_data %>% group_by(state, age_group,sex,race) %>% summarise(count=n())
-
 
 num_state<-nrow(state_population)
 
@@ -248,38 +357,61 @@ for (i in 1:num_state) {
     }
   }
 }
-
-###Calculate a raw probability that a person will support Trump(only based on survey data)
-survey_data %>% summarise(Support_T_raw_prob = sum(vote_Trump)/nrow(survey_data))
-
-#Build a linear regression model using survey data
-model_survey <- lm(vote_Trump ~ age_group+sex+race, data = survey_data)
+#Predicted probability for each group
 census_data$estimate<-model_survey %>% predict(newdata = census_data)
-head(census_data)
+#Predicted probability for each state
 census_data %>% mutate(predict_prob_perS = estimate*cell_prob_per_state) %>% group_by(state) %>% summarise(predict_prob = sum(predict_prob_perS))
-
-#VIF value
-car::vif(model_survey)
-# Model diagnostics
-par(mfrow=c(2,2))
-plot(model_survey)
-# Model statistics
-summary(model_survey)
 
 ```
 
 
 
-
-
-
 # Results
+
+From the survey data in 2020 we can calculate the raw probability of people voting for Trump is:
+```{r echo=FALSE}
+###Calculate a raw probability that a person will support Trump(only based on survey data)
+survey_data %>% summarise(Support_T_raw_prob = sum(vote_Trump)/nrow(survey_data))
+```
+
+From the coefficients of the model above we produced, the estimated slope of black race and other races are -0.230 and -0.008, indicating a reverse pattern between being of these races and voting for Trump. 
+
+From the predicted probability of each state we could tell, only in Maine (ME, 0.519), Montana (MT, 0.525), New Mexico (NM,0.516) and Vermont (VT, 0.530), Trump has the supporting rate that exceeds 50%.(Displayed by Fig.5, Fig.6, Fig.7)
+
+```{r echo=FALSE, fig.cap="Figure.12"}
+knitr::include_graphics("/cloud/project/prob1.PNG")
+```
+
+```{r echo=FALSE, fig.cap="Fig.13"}
+knitr::include_graphics("/cloud/project/prob2.PNG")
+```
+
+```{r echo=FALSE, fig.cap="Fig.14"}
+knitr::include_graphics("/cloud/project/prob3.PNG")
+```
 
 
 # Discussion
+Our multilevel regression model with post-stratification implied three results: 1) Maine (51.8%), Montana (52.5%), New Mexico (51.5%) and Vermont (52.9%) have the highest probability of voting Trump in electoral college; 2) the non-white voters tend to not vote for Trump, since the estimated slope for people who are black or other races were negative; 3) people in age group 24~29 do not have a significant relationship with voting trump, this means that they are less likely to vote for Trump. 
+
+Among these findings, the probability of voting Trump in each state was especially worth mentioning. The voting system in the U.S. indicates that 538 votes are allocated in the electoral college, which are based on states’ representation in Congress, this means that winning a majority of votes is not enough, it is also important to win the votes from swing states. In the past five elections, there were two elections, including the 2016 Trump vs. Clinton election, encountered the situation in which the candidate won the majority of vote did not win the election because they did not maintain their winning seat in electoral college vote (Economist, 2020). Is 2020 election the same case as 2016 election? This is the question we need to ask and investigate. From the model results, we took extra attention on the swing states statistics, and found that the probability of voting Trump in swing states such as Arizona, Minnesota, Florida, were 47.9%, 41% and 46.7% respectively. It seems that Trump lost the majority of vote, but might also lose the electoral college vote as well. However, this still remains uncertain since the voting process is not yet finished, there might be changes in the statistics at the end of the day. 
+Our second finding was that non-white voters tend not to vote for Trump, in other words, a majority of Trump voters were whites. The past research showed that electoral college favours white voters, such that the white share of voting power is about 79% (Economist, 2020). This is an extremely high number, and Trump’s supporters happened to be mainly whites. This implies that the election outcome this year might be the same with the 2016 election, since Trump might win a majority in electoral college again.
+
+Although our model provides a prediction on the possibility of Trump winning the election, we are only assuming this model is an accurate description of the real world. This means that in real world, there are too many factors that have the ability to alter the final election outcome. In 2016 election, Nate Silver used predictive model to calculate the winning chance of Clinton was 71%, however, this does not mean that his model was inaccurate or “wrong” (Breur, 2016). It only means that in the statistical world, everything is based on the information that was given, a high possibility on future event does not imply certainty (Breur, 2016). A research finding helps illustrate this: the voting system of the U.S. suggests that the location of the voters can dramatically influence his/her voting power (Economist, 2020). As the research states, “a Granite Stater who moves to neighbouring Vermont becomes 1,000 times less likely to affect the result of the election, simply by moving a few miles.” (Economist, 2020). This means that the survey data and census data used in this report might be actually outdated because we do not know how many people move to another state, and how this might change the final voting power of the state. There are also many other factors that could influence the future outcomes, such as the role of social media, changes in voting behaviour. Therefore, the findings resulted from the model in this report only provide an insight to the election outcome.
+# Weakness and Next Step
+There are several weaknesses in our research. During the sample selecting process, we were forced to narrow down our sample range by about 100,000 people because the computer we used could not support Rstudio to run such large amount of data. Our sample size might be too small that there is a chance it affected the model accuracy and reliability.
+
+For future research, it is best to increase the sample size and select more variables for the model. Also, researchers could try several models and then pick the best one from them. In this report, we did not include model selection process due to a lack of time, this should be fixed in the future.
+
+
+# Appendix
+
+Code for this analysis is available at: https://github.com/JessieZ32/2020_US_election
 
 
 # Reference
+
+
 
 
 
